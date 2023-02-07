@@ -31,8 +31,13 @@ public class FormItemController {
         return "form/item";
     }
 
-    @GetMapping("/add")
+    /*@GetMapping("/add")
     public String addForm() {
+        return "form/addForm";
+    } 기존코드 */
+    @GetMapping("/add")
+    public String addForm(Model model) {
+        model.addAttribute("item", new Item());
         return "form/addForm";
     }
 
