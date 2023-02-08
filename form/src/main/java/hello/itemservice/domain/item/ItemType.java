@@ -11,4 +11,7 @@ public enum ItemType {
         this.description = description;
     }
 
+    public String getDescription(){
+        return description;
+    }
 }
