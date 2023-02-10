@@ -51,7 +51,6 @@ public class MessageSourceTest {
 
     @Test
     void enLang() {
-        Assertions.assertThat(ms.getMessage("hello", null,
-                Locale.ENGLISH)).isEqualTo("hello");
+        Assertions.assertThat(ms.getMessage("hello", null, Locale.ENGLISH)).isEqualTo("hello");
     }
 }
