@@ -127,7 +127,7 @@ public class ValidationItemControllerV2 {
         return "redirect:/validation/v2/items/{itemId}";
     }
 
-    @PostMapping("/add")
+    //@PostMapping("/add")
     public String addItemV2(@ModelAttribute Item item,BindingResult bindingResult, RedirectAttributes redirectAttributes, Model model) {
         //BindingResult > item이 바인딩된 결과가 담긴다.
 
@@ -148,6 +148,45 @@ public class ValidationItemControllerV2 {
             int resultPrice = item.getPrice() * item.getQuantity();
             if(resultPrice < 10000){
                 bindingResult.addError(new ObjectError("item",null,null, "가격 * 수량의 합은 10,000원 이상이어야 합니다. 현재 값 = " + resultPrice));
+                //특정 필드에 대한 에러가 아닌 글로벌 에러는 ObjectError(오브젝트명, 메세지)
+            }
+        }
+
+        //검증에 실패하면 다시 입력 폼으로
+        //bindingResult에 에러가 있는지는 hasErrors()로 검사
+        if(bindingResult.hasErrors()){
+            //model.addAttribute("errors", errors);
+            //바인딩리절트는 자동으로 뷰에 넘어가서 모델에 담을필요가 없다.
+            return "validation/v2/addForm";
+        }
+
+        //성공로직
+        Item savedItem = itemRepository.save(item);
+        redirectAttributes.addAttribute("itemId", savedItem.getId());
+        redirectAttributes.addAttribute("status", true);
+        return "redirect:/validation/v2/items/{itemId}";
+    }
+
+    @PostMapping("/add")
+    public String addItemV3(@ModelAttribute Item item,BindingResult bindingResult, RedirectAttributes redirectAttributes, Model model) {
+        //BindingResult > item이 바인딩된 결과가 담긴다.
+
+        //검증로직
+        if(!StringUtils.hasText(item.getItemName())){
+            bindingResult.addError(new FieldError("item", "itemName", item.getItemName(),false,new String[]{"required.item.itemName"},null, null));
+        }
+        if(item.getPrice() == null || item.getPrice()<1000 || item.getPrice()>1000000){
+            bindingResult.addError(new FieldError("item", "price", item.getPrice(),false,new String[]{"range.item.price"},new Object[]{1000,1000000}, null));
+        }
+        if(item.getQuantity() == null || item.getQuantity() >9999){
+            bindingResult.addError(new FieldError("item", "quantity", item.getQuantity(),false,new String[]{"max.item.quantity"},new Object[]{9999}, null));
+        }
+
+        //특정 필드가 아닌 복합 룰 검증
+        if(item.getPrice() != null && item.getQuantity()!=null){
+            int resultPrice = item.getPrice() * item.getQuantity();
+            if(resultPrice < 10000){
+                bindingResult.addError(new ObjectError("item", new String[]{"totalPriceMin"},new Object[]{10000,resultPrice}, null));
                 //특정 필드에 대한 에러가 아닌 글로벌 에러는 ObjectError(오브젝트명, 메세지)
             }
         }
