@@ -3,6 +3,7 @@ package hello.itemservice.web.validation;
 import hello.itemservice.domain.item.Item;
 import hello.itemservice.domain.item.ItemRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.util.StringUtils;
@@ -16,6 +17,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+@Slf4j
 @Controller
 @RequestMapping("/validation/v2/items")
 @RequiredArgsConstructor
@@ -167,7 +169,7 @@ public class ValidationItemControllerV2 {
         return "redirect:/validation/v2/items/{itemId}";
     }
 
-    @PostMapping("/add")
+    //@PostMapping("/add")
     public String addItemV3(@ModelAttribute Item item,BindingResult bindingResult, RedirectAttributes redirectAttributes, Model model) {
         //BindingResult > item이 바인딩된 결과가 담긴다.
 
@@ -196,6 +198,47 @@ public class ValidationItemControllerV2 {
         if(bindingResult.hasErrors()){
             //model.addAttribute("errors", errors);
             //바인딩리절트는 자동으로 뷰에 넘어가서 모델에 담을필요가 없다.
+            return "validation/v2/addForm";
+        }
+
+        //성공로직
+        Item savedItem = itemRepository.save(item);
+        redirectAttributes.addAttribute("itemId", savedItem.getId());
+        redirectAttributes.addAttribute("status", true);
+        return "redirect:/validation/v2/items/{itemId}";
+    }
+
+    @PostMapping("/add")
+    public String addItemV4(@ModelAttribute Item item,BindingResult bindingResult, RedirectAttributes redirectAttributes, Model model) {
+        //BindingResult > item이 바인딩된 결과가 담긴다.
+
+        //검증로직
+        if(!StringUtils.hasText(item.getItemName())){
+            //rejectValue(필드명,에러코드(required.item.itemName에서 required만 넣어도된다.), 파라미터(오브젝트배열), 디폴트메세지) >오브젝트는 이미 알고 있기때문에
+            bindingResult.rejectValue("itemName","required");
+        }
+        if(item.getPrice() == null || item.getPrice()<1000 || item.getPrice()>1000000){
+            bindingResult.rejectValue("price","range", new Object[]{1000,1000000}, null);
+        }
+        if(item.getQuantity() == null || item.getQuantity() >9999){
+            bindingResult.rejectValue("quantity", "max", new Object[]{9999}, null);
+        }
+
+        //특정 필드가 아닌 복합 룰 검증
+        if(item.getPrice() != null && item.getQuantity()!=null){
+            int resultPrice = item.getPrice() * item.getQuantity();
+            if(resultPrice < 10000){
+                //그냥 reject()는 필드가 아닌 오브젝트에 대한 에러 >필드명도 필요없어진다.
+                bindingResult.reject("totalPriceMin", new Object[]{10000,resultPrice}, null);
+            }
+        }
+
+        //검증에 실패하면 다시 입력 폼으로
+        //bindingResult에 에러가 있는지는 hasErrors()로 검사
+        if(bindingResult.hasErrors()){
+            //model.addAttribute("errors", errors);
+            //바인딩리절트는 자동으로 뷰에 넘어가서 모델에 담을필요가 없다.
+            log.info("error={} ", bindingResult);
             return "validation/v2/addForm";
         }
 
