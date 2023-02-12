@@ -24,6 +24,7 @@ import java.util.Map;
 public class ValidationItemControllerV2 {
 
     private final ItemRepository itemRepository;
+    private final ItemValidator itemValidator;
 
     @GetMapping
     public String items(Model model) {
@@ -208,7 +209,7 @@ public class ValidationItemControllerV2 {
         return "redirect:/validation/v2/items/{itemId}";
     }
 
-    @PostMapping("/add")
+    //@PostMapping("/add")
     public String addItemV4(@ModelAttribute Item item,BindingResult bindingResult, RedirectAttributes redirectAttributes, Model model) {
         //BindingResult > item이 바인딩된 결과가 담긴다.
 
@@ -232,6 +233,30 @@ public class ValidationItemControllerV2 {
                 bindingResult.reject("totalPriceMin", new Object[]{10000,resultPrice}, null);
             }
         }
+
+        //검증에 실패하면 다시 입력 폼으로
+        //bindingResult에 에러가 있는지는 hasErrors()로 검사
+        if(bindingResult.hasErrors()){
+            //model.addAttribute("errors", errors);
+            //바인딩리절트는 자동으로 뷰에 넘어가서 모델에 담을필요가 없다.
+            log.info("error={} ", bindingResult);
+            return "validation/v2/addForm";
+        }
+
+        //성공로직
+        Item savedItem = itemRepository.save(item);
+        redirectAttributes.addAttribute("itemId", savedItem.getId());
+        redirectAttributes.addAttribute("status", true);
+        return "redirect:/validation/v2/items/{itemId}";
+    }
+
+    @PostMapping("/add")
+    public String addItemV5(@ModelAttribute Item item,BindingResult bindingResult, RedirectAttributes redirectAttributes, Model model) {
+        //BindingResult > item이 바인딩된 결과가 담긴다.
+
+        //itemValidator는 @Component로 스프링 빈에 등록이 되어있다.
+        itemValidator.validate(item, bindingResult);
+
 
         //검증에 실패하면 다시 입력 폼으로
         //bindingResult에 에러가 있는지는 hasErrors()로 검사
