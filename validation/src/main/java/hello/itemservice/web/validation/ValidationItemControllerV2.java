@@ -10,6 +10,8 @@ import org.springframework.util.StringUtils;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.FieldError;
 import org.springframework.validation.ObjectError;
+import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.WebDataBinder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
@@ -25,6 +27,14 @@ public class ValidationItemControllerV2 {
 
     private final ItemRepository itemRepository;
     private final ItemValidator itemValidator;
+
+    //컨트롤러가 호출될때 마다 항상 InitBinder로 해놓은 함수가 불려져서
+    //항상 dataBinder에 만들었던 itemValidator를 넣어둔다.
+    @InitBinder
+    public void init(WebDataBinder dataBinder){
+        dataBinder.addValidators(itemValidator);
+    }
+
 
     @GetMapping
     public String items(Model model) {
@@ -250,13 +260,33 @@ public class ValidationItemControllerV2 {
         return "redirect:/validation/v2/items/{itemId}";
     }
 
-    @PostMapping("/add")
+    //@PostMapping("/add")
     public String addItemV5(@ModelAttribute Item item,BindingResult bindingResult, RedirectAttributes redirectAttributes, Model model) {
         //BindingResult > item이 바인딩된 결과가 담긴다.
 
         //itemValidator는 @Component로 스프링 빈에 등록이 되어있다.
         itemValidator.validate(item, bindingResult);
 
+
+        //검증에 실패하면 다시 입력 폼으로
+        //bindingResult에 에러가 있는지는 hasErrors()로 검사
+        if(bindingResult.hasErrors()){
+            //model.addAttribute("errors", errors);
+            //바인딩리절트는 자동으로 뷰에 넘어가서 모델에 담을필요가 없다.
+            log.info("error={} ", bindingResult);
+            return "validation/v2/addForm";
+        }
+
+        //성공로직
+        Item savedItem = itemRepository.save(item);
+        redirectAttributes.addAttribute("itemId", savedItem.getId());
+        redirectAttributes.addAttribute("status", true);
+        return "redirect:/validation/v2/items/{itemId}";
+    }
+
+    @PostMapping("/add") //@Validated추가 > item에 대해서 자동으로 검증기가 수행된다.
+    public String addItemV6(@Validated @ModelAttribute Item item, BindingResult bindingResult, RedirectAttributes redirectAttributes, Model model) {
+        //BindingResult > item이 바인딩된 결과가 담긴다.
 
         //검증에 실패하면 다시 입력 폼으로
         //bindingResult에 에러가 있는지는 hasErrors()로 검사
