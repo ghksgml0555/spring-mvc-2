@@ -17,18 +17,21 @@ public class LoginService {
      * @return null 이면 로그인 실패
      */
     public Member login(String loginId, String password){
-        /*Optional<Member> findMemberOptional = memberRepository.findByLoginId(loginId);
+        Optional<Member> findMemberOptional = memberRepository.findByLoginId(loginId);
         Member member = findMemberOptional.get();
+        if(member==null){
+            return null;
+        }
         if(member.getPassword().equals(password)){
             return member;
         }else {
             return null;
-        }*/
+        }
 
         //옵셔널을 이용하면 아래처럼 더 짧아짐
-        return memberRepository.findByLoginId(loginId)
+        /*return memberRepository.findByLoginId(loginId)
                 .filter(m -> m.getPassword().equals(password))
-                .orElse(null);
+                .orElse(null);*/
 
     }
 }
