@@ -18,6 +18,12 @@ public class ApiExceptionController {
             throw new RuntimeException("잘못된 사용자");
         }
 
+        //IllegalArgumentException 발생시 상태코드 400보내기
+        //사용자가 id에 bad라고 절대 넘기면 안되는걸로 스펙에 정했을때 넘긴경우
+        if(id.equals("bad")){
+            throw new IllegalArgumentException("잘못된 입력 값");
+        }
+
         return new MemberDto(id, "hello " + id);
     }
 
