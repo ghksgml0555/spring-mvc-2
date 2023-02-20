@@ -1,11 +1,13 @@
 package hello.exception.api;
 
+import hello.exception.exception.UserException;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RestController;
+
 
 @Slf4j
 @RestController
@@ -22,6 +24,9 @@ public class ApiExceptionController {
         //사용자가 id에 bad라고 절대 넘기면 안되는걸로 스펙에 정했을때 넘긴경우
         if(id.equals("bad")){
             throw new IllegalArgumentException("잘못된 입력 값");
+        }
+        if (id.equals("user-ex")){
+            throw new UserException("사용자 오류");
         }
 
         return new MemberDto(id, "hello " + id);
