@@ -13,28 +13,6 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 public class ApiExceptionV2Controller {
 
-    @ResponseStatus(HttpStatus.BAD_REQUEST)
-    @ExceptionHandler(IllegalArgumentException.class)
-    public ErrorResult illegalExHandler(IllegalArgumentException e){
-        log.error("[exceptionHandler] ex", e); // 익셉션은 {}필요없다.
-        return new ErrorResult("BAD", e.getMessage());
-    }
-
-    //함수명뒤에 UserException만 붙혀도 @ExceptionHandler(UserException.class)와 같게 동작
-    @ExceptionHandler
-    public ResponseEntity<ErrorResult> userExHandler(UserException e){
-        log.error("[exceptionHandler] ex", e);
-        ErrorResult errorResult = new ErrorResult("USER-EX", e.getMessage());
-        return new ResponseEntity(errorResult, HttpStatus.BAD_REQUEST);
-    }
-
-    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
-    @ExceptionHandler
-    public ErrorResult exHandler(Exception e){
-        log.error("[exceptionHandler] ex", e);
-        return new ErrorResult("EX", "내부 오류");
-    }
-
     @GetMapping("/api2/members/{id}")
     public MemberDto getMember(@PathVariable("id") String id){
 
