@@ -69,9 +69,16 @@ public class SessionManager {
         if(request.getCookies()==null){
             return null;
         }
+        /*
         return Arrays.stream(request.getCookies())
                 .filter(cookie -> cookie.getName().equals(cookieName))
                 .findAny()
-                .orElse(null);
+                .orElse(null);*/
+        for (Cookie cookie : request.getCookies()) {
+            if(cookie.getName().equals(cookieName)){
+                return cookie;
+            }
+        }
+        return null;
     }
 }
